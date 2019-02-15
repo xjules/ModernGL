@@ -147,7 +147,7 @@ class ComputeToggleTimer(QtCore.QThread):
 
 
 class Renderer(QtWidgets.QOpenGLWidget):
-    COUNT = 256
+    COUNT = 1024
     STRUCT_SIZE = 12
 
     worker_thread = None
