@@ -15,7 +15,7 @@ class HelloWorld(Example):
         self.prog = self.ctx.program(
             vertex_shader='''
                 #version 330
-
+                
                 in vec2 in_vert;
 
                 void main() {
@@ -24,11 +24,12 @@ class HelloWorld(Example):
             ''',
             fragment_shader='''
                 #version 330
-
+                uniform vec3 set_color;
                 out vec4 f_color;
 
                 void main() {
-                    f_color = vec4(0.3, 0.5, 1.0, 1.0);
+                    //f_color = vec4(0.3, 0.5, 1.0, 1.0);
+                    f_color = vec4(set_color,1.0);
                 }
             ''',
         )
@@ -44,6 +45,7 @@ class HelloWorld(Example):
 
     def render(self):
         self.ctx.viewport = self.wnd.viewport
+        self.prog['set_color'].value = (0.6, 0.1, 0.1)
         self.ctx.clear(1.0, 1.0, 1.0)
         self.vao.render()
 
