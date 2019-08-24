@@ -9,7 +9,7 @@ ModernGL examples that can be run on servers.
 ## Requirements
 
 ```shell
-pip install ModernGL Pillow Pyrr numpy
+pip install moderngl Pillow Pyrr numpy
 ```
 
 ## Running examples without a display
@@ -30,7 +30,7 @@ sudo apt-get update
 sudo apt-get install -y xvfb python3 python3-virtualenv
 python3 -m virtualenv --python=python3 venv
 source venv/bin/activate
-pip install ModernGL Pillow Pyrr numpy
+pip install moderngl Pillow Pyrr numpy
 Xvfb -screen 0 640x480x24 :99 &
 export DISPLAY=:99.0
 wget https://raw.githubusercontent.com/cprogrammer1994/ModernGL/master/examples/standalone/01_hello_world.py
@@ -45,7 +45,7 @@ sudo apt-get update
 sudo apt-get install -y xvfb python3 python3-virtualenv
 python3 -m virtualenv --python=python3 venv
 source venv/bin/activate
-pip install ModernGL Pillow Pyrr numpy
+pip install moderngl Pillow Pyrr numpy
 wget https://raw.githubusercontent.com/cprogrammer1994/ModernGL/master/examples/standalone/01_hello_world.py
 xvfb-run --auto-servernum --server-args='-screen 0 640x480x24' python 01_hello_world.py
 ls 01_hello_world.png

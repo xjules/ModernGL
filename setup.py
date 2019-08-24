@@ -40,14 +40,15 @@ if target == 'darwin':
 if target in ['linux', 'cygwin']:
     from distutils import sysconfig
     cvars = sysconfig.get_config_vars()
+    
+    if hasattr(sysconfig, '_config_vars') and sysconfig._config_vars is not None:
+        if 'OPT' in cvars:
+            sysconfig._config_vars['OPT'] = cvars['OPT'].replace('-Wstrict-prototypes', '')
+            sysconfig._config_vars['OPT'] = cvars['OPT'].replace('-Wimplicit-function-declaration', '')
 
-    if 'OPT' in cvars:
-        sysconfig._config_vars['OPT'] = cvars['OPT'].replace('-Wstrict-prototypes', '')
-        sysconfig._config_vars['OPT'] = cvars['OPT'].replace('-Wimplicit-function-declaration', '')
-
-    if 'CFLAGS' in cvars:
-        sysconfig._config_vars['CFLAGS'] = cvars['CFLAGS'].replace('-Wstrict-prototypes', '')
-        sysconfig._config_vars['CFLAGS'] = cvars['CFLAGS'].replace('-Wimplicit-function-declaration', '')
+        if 'CFLAGS' in cvars:
+            sysconfig._config_vars['CFLAGS'] = cvars['CFLAGS'].replace('-Wstrict-prototypes', '')
+            sysconfig._config_vars['CFLAGS'] = cvars['CFLAGS'].replace('-Wimplicit-function-declaration', '')
 
 libraries = {
     'windows': ['gdi32', 'opengl32', 'user32'],
@@ -75,74 +76,51 @@ extra_linker_args = {
 
 mgl = Extension(
     name='moderngl.mgl',
-    include_dirs=['src'],
+    include_dirs=['src', 'moderngl', 'moderngl/mgl'],
     define_macros=[],
     libraries=libraries[target],
     extra_compile_args=extra_compile_args[target],
     extra_link_args=extra_linker_args[target],
     sources=[
-        'src/Sampler.cpp',
-        'src/Attribute.cpp',
-        'src/Buffer.cpp',
-        'src/BufferFormat.cpp',
-        'src/ComputeShader.cpp',
-        'src/Context.cpp',
-        'src/DataType.cpp',
-        'src/Error.cpp',
-        'src/Framebuffer.cpp',
-        'src/GLContext.cpp',
-        'src/GLMethods.cpp',
-        'src/InvalidObject.cpp',
-        'src/ModernGL.cpp',
-        'src/Program.cpp',
-        'src/Query.cpp',
-        'src/Renderbuffer.cpp',
-        'src/Scope.cpp',
-        'src/Texture.cpp',
-        'src/Texture3D.cpp',
-        'src/TextureArray.cpp',
-        'src/TextureCube.cpp',
-        'src/Uniform.cpp',
-        'src/UniformBlock.cpp',
-        'src/UniformGetters.cpp',
-        'src/UniformSetters.cpp',
-        'src/VertexArray.cpp',
+        'moderngl/old/gl_context_%s.cpp' % target,
+        'moderngl/old/gl_methods.cpp',
+        'moderngl/old/Sampler.cpp',
+        'moderngl/old/Attribute.cpp',
+        'moderngl/old/Buffer.cpp',
+        'moderngl/old/BufferFormat.cpp',
+        'moderngl/old/ComputeShader.cpp',
+        'moderngl/old/Context.cpp',
+        'moderngl/old/DataType.cpp',
+        'moderngl/old/Error.cpp',
+        'moderngl/old/Framebuffer.cpp',
+        'moderngl/old/InvalidObject.cpp',
+        'moderngl/old/ModernGL.cpp',
+        'moderngl/old/Program.cpp',
+        'moderngl/old/Query.cpp',
+        'moderngl/old/Renderbuffer.cpp',
+        'moderngl/old/Scope.cpp',
+        'moderngl/old/Texture.cpp',
+        'moderngl/old/Texture3D.cpp',
+        'moderngl/old/TextureArray.cpp',
+        'moderngl/old/TextureCube.cpp',
+        'moderngl/old/Uniform.cpp',
+        'moderngl/old/UniformBlock.cpp',
+        'moderngl/old/UniformGetters.cpp',
+        'moderngl/old/UniformSetters.cpp',
+        'moderngl/old/VertexArray.cpp',
     ],
-)
+    depends=[
+        'moderngl/old/gl_context.hpp',
+        'moderngl/old/gl_methods.hpp',
+        'moderngl/old/OpenGL.hpp',
 
-experimental_mgl = Extension(
-    name='moderngl.experimental.mgl',
-    include_dirs=['moderngl/experimental'],
-    define_macros=[],
-    libraries=libraries[target],
-    extra_compile_args=extra_compile_args[target],
-    extra_link_args=extra_linker_args[target],
-    sources=[
-        'moderngl/experimental/mgl/buffer.cpp',
-        'moderngl/experimental/mgl/compute_shader.cpp',
-        'moderngl/experimental/mgl/configuration.cpp',
-        'moderngl/experimental/mgl/context.cpp',
-        'moderngl/experimental/mgl/extensions.cpp',
-        'moderngl/experimental/mgl/framebuffer.cpp',
-        'moderngl/experimental/mgl/inspect.cpp',
-        'moderngl/experimental/mgl/limits.cpp',
-        'moderngl/experimental/mgl/mgl.cpp',
-        'moderngl/experimental/mgl/program.cpp',
-        'moderngl/experimental/mgl/query.cpp',
-        'moderngl/experimental/mgl/recorder.cpp',
-        'moderngl/experimental/mgl/renderbuffer.cpp',
-        'moderngl/experimental/mgl/sampler.cpp',
-        'moderngl/experimental/mgl/scope.cpp',
-        'moderngl/experimental/mgl/texture.cpp',
-        'moderngl/experimental/mgl/vertex_array.cpp',
-        'moderngl/experimental/mgl/internal/bytecode.cpp',
-        'moderngl/experimental/mgl/internal/data_type.cpp',
-        'moderngl/experimental/mgl/internal/glsl.cpp',
-        'moderngl/experimental/mgl/internal/modules.cpp',
-        'moderngl/experimental/mgl/internal/tools.cpp',
-        'moderngl/experimental/mgl/internal/wrapper.cpp',
-        'moderngl/experimental/mgl/internal/opengl/gl_context_%s.cpp' % target,
-        'moderngl/experimental/mgl/internal/opengl/gl_methods.cpp',
+        'moderngl/old/BufferFormat.hpp',
+        'moderngl/old/Error.hpp',
+        'moderngl/old/InlineMethods.hpp',
+        'moderngl/old/OpenGL.hpp',
+        'moderngl/old/Python.hpp',
+        'moderngl/old/Types.hpp',
+        'moderngl/old/UniformGetSetters.hpp',
     ],
 )
 
@@ -179,17 +157,17 @@ classifiers = [
 
 setup(
     name='moderngl',
-    version='5.5.0',
+    version='5.5.2',
     description=short_description,
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/cprogrammer1994/ModernGL',
+    url='https://github.com/moderngl/moderngl',
     author='Szabolcs Dombi',
     author_email='cprogrammer1994@gmail.com',
     license='MIT',
     classifiers=classifiers,
     keywords=keywords,
-    packages=['moderngl', 'moderngl.experimental', 'moderngl.program_members'],
-    ext_modules=[mgl, experimental_mgl],
+    packages=['moderngl', 'moderngl.program_members'],
+    ext_modules=[mgl],
     platforms=['any'],
 )

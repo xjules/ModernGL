@@ -1,16 +1,8 @@
-import os
-
-import moderngl
 import numpy as np
-from objloader import Obj
-from PIL import Image
 from pyrr import Matrix44
 
-from example_window import Example, run_example
-
-
-def local(*path):
-    return os.path.join(os.path.dirname(__file__), *path)
+import moderngl
+from ported._example import Example
 
 
 class InstancedCrates(Example):
@@ -19,9 +11,11 @@ class InstancedCrates(Example):
         For each crate the location is [x, y, sin(a * time + b)]
         There are 1024 crates aligned in a grid.
     '''
+    title = "Instanced Crates"
+    gl_version = (3, 3)
 
-    def __init__(self):
-        self.ctx = moderngl.create_context()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.prog = self.ctx.program(
             vertex_shader='''
@@ -31,19 +25,19 @@ class InstancedCrates(Example):
 
                 in vec3 in_move;
 
-                in vec3 in_vert;
-                in vec3 in_norm;
-                in vec2 in_text;
+                in vec3 in_position;
+                in vec3 in_normal;
+                in vec2 in_texcoord_0;
 
                 out vec3 v_vert;
                 out vec3 v_norm;
                 out vec2 v_text;
 
                 void main() {
-                    gl_Position = Mvp * vec4(in_vert + in_move, 1.0);
-                    v_vert = in_vert + in_move;
-                    v_norm = in_norm;
-                    v_text = in_text;
+                    gl_Position = Mvp * vec4(in_position + in_move, 1.0);
+                    v_vert = in_position + in_move;
+                    v_norm = in_normal;
+                    v_text = in_texcoord_0;
                 }
             ''',
             fragment_shader='''
@@ -68,18 +62,17 @@ class InstancedCrates(Example):
         self.mvp = self.prog['Mvp']
         self.light = self.prog['Light']
 
-        obj = Obj.open(local('data', 'crate.obj'))
-        img = Image.open(local('data', 'crate.png')).transpose(Image.FLIP_TOP_BOTTOM).convert('RGB')
-        self.texture = self.ctx.texture(img.size, 3, img.tobytes())
-        self.texture.build_mipmaps()
-        self.texture.use()
+        self.scene = self.load_scene('crate.obj')
+        self.texture = self.load_texture_2d('crate.png')
 
-        self.vbo1 = self.ctx.buffer(obj.pack('vx vy vz nx ny nz tx ty'))
-        self.vbo2 = self.ctx.buffer(reserve=12 * 1024)
-        self.vao = self.ctx.vertex_array(self.prog, [
-            (self.vbo1, '3f 3f 2f', 'in_vert', 'in_norm', 'in_text'),
-            (self.vbo2, '3f/i', 'in_move'),
-        ])
+        # Add a new buffer into the VAO wrapper in the scene.
+        # This is simply a collection of named buffers that is auto mapped
+        # to attributes in the vertex shader with the same name.
+        self.instance_data = self.ctx.buffer(reserve=12 * 1024)
+        vao_wrapper = self.scene.root_nodes[0].mesh.vao
+        vao_wrapper.buffer(self.instance_data, '3f/i', 'in_move')
+        # Create the actual vao instance (auto mapping in action)
+        self.vao = vao_wrapper.instance(self.prog)
 
         self.crate_a = np.random.uniform(0.7, 0.8, 32 * 32)
         self.crate_b = np.random.uniform(0.0, 6.3, 32 * 32)
@@ -88,16 +81,14 @@ class InstancedCrates(Example):
         self.crate_x += np.random.uniform(-0.2, 0.2, 32 * 32)
         self.crate_y += np.random.uniform(-0.2, 0.2, 32 * 32)
 
-    def render(self):
-        angle = self.wnd.time * 0.2
-        width, height = self.wnd.size
-        self.ctx.viewport = self.wnd.viewport
+    def render(self, time, frame_time):
+        angle = time * 0.2
         self.ctx.clear(1.0, 1.0, 1.0)
         self.ctx.enable(moderngl.DEPTH_TEST)
 
         camera_pos = (np.cos(angle) * 5.0, np.sin(angle) * 5.0, 2.0)
 
-        proj = Matrix44.perspective_projection(45.0, width / height, 0.1, 1000.0)
+        proj = Matrix44.perspective_projection(45.0, self.aspect_ratio, 0.1, 1000.0)
         lookat = Matrix44.look_at(
             camera_pos,
             (0.0, 0.0, 0.5),
@@ -107,11 +98,13 @@ class InstancedCrates(Example):
         self.mvp.write((proj * lookat).astype('f4').tobytes())
         self.light.value = camera_pos
 
-        crate_z = np.sin(self.crate_a * self.wnd.time + self.crate_b) * 0.2
+        crate_z = np.sin(self.crate_a * time + self.crate_b) * 0.2
         coordinates = np.dstack([self.crate_x, self.crate_y, crate_z])
 
-        self.vbo2.write(coordinates.astype('f4').tobytes())
+        self.instance_data.write(coordinates.astype('f4').tobytes())
+        self.texture.use()
         self.vao.render(instances=1024)
 
 
-run_example(InstancedCrates)
+if __name__ == '__main__':
+    InstancedCrates.run()

@@ -221,3 +221,9 @@ class Buffer:
         '''
 
         self.mglo.release()
+
+    def bind(self, *attribs, layout=None):
+        return (self, layout, *attribs)
+
+    def assign(self, index):
+        return (self, index)

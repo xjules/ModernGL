@@ -66,6 +66,7 @@ Attributes
 .. autoattribute:: Context.max_anisotropy
 .. autoattribute:: Context.multisample
 .. autoattribute:: Context.patch_vertices
+.. autoattribute:: Context.provoking_vertex
 .. autoattribute:: Context.error
 .. autoattribute:: Context.info
 .. autoattribute:: Context.extra

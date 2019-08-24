@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- The `Framebuffer.clear` have an optional `color` parameter to replace the old `red, green, blue, alpha` parameters.
+- Samplers and Buffers have an `assing` method to simplify the scope creation.
+- Samplers have an optional `texture` parameter that will be used together with the sampler when given.
+- The Scope's `enable_only` keyword argument is deprecated in favor of the `enable` keyword argument. 
+- Buffers have a `bind` method that replaces the tuples in the VertexArray creation.
+- VertexArrays have an optional `scope` property that will be used when rendering.
+- The VertexArray's `vertices` property is now writeable.
+- VertexArrays have an `instances` property to control the default number of instances when rendering.
+- The Context object contains the constants provided by the moderngl module. The constants are: (TRIANGLE, LINES, DEPTH_TEST, ...)
+
+### Changed
+
+- The `framebuffer` parameter is optional in Scopes.
+- The `ctx.simple_vertex_array` is deprecated in favor of using `ctx.vertex_array` with the same parameters.
+- The `prog[uniform].value = value` is deprecated in favor of using `prog[uniform] = value`.
+- The `prog[uniform].write(bytes_value)` is deprecated in favor of using the `prog[uniform] = bytes_value`.
+
+## [5.5.2] - 2019-06-13
+
+### Fixed
+
+- missing packange in setup.py
+
+## [5.5.1] - 2019-06-12
+
+### Fixed
+
+- offset fix for vao render
+
+## [5.5.0] - 2019-01-22
+
+### Fixed
+
+- depth texture filder and compare func
+- scope restores old enable flags properly
+- clear gl errors as the final step of initialization
+- fix default framebuffer's number of attachments
+
+### Added
+
+- documentation for `extra` properties
+- improved documentation
+- improved build on Mac
+
+## [5.4.2] - 2018-08-01
+
+### Fixed
+
+- included `moderngl.program_members` in the package list
+
 ## [5.4.1] - 2018-07-30
 
 ### Fixed
@@ -441,7 +493,11 @@ For more information please see: [Differneces between ModernGL5 and ModernGL4](h
 
 - It was a tool for me to develop games in python
 
-[Unreleased]: https://github.com/cprogrammer1994/ModernGL/compare/5.4.1...master
+[Unreleased]: https://github.com/cprogrammer1994/ModernGL/compare/5.5.2...master
+[5.5.2]: https://github.com/cprogrammer1994/ModernGL/compare/5.5.1...5.5.2
+[5.5.1]: https://github.com/cprogrammer1994/ModernGL/compare/5.5.0...5.5.1
+[5.5.0]: https://github.com/cprogrammer1994/ModernGL/compare/5.4.2...5.5.0
+[5.4.2]: https://github.com/cprogrammer1994/ModernGL/compare/5.4.1...5.4.2
 [5.4.1]: https://github.com/cprogrammer1994/ModernGL/compare/5.4.0...5.4.1
 [5.4.0]: https://github.com/cprogrammer1994/ModernGL/compare/5.3.0...5.4.0
 [5.3.0]: https://github.com/cprogrammer1994/ModernGL/compare/5.2.1...5.3.0

@@ -20,7 +20,7 @@ Most of the examples depend on the following modules:
 It is reccommanded to install these before running the examples.
 
 ```sh
-pip install ModernGL Pyrr Pillow numpy
+pip install moderngl Pyrr Pillow numpy
 ```
 
 Don't forget to install the module for window support.

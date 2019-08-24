@@ -14,10 +14,6 @@ class TestCase(unittest.TestCase):
     def test_buffer_create_bytes(self):
         self.ctx.buffer(b'Hello World!')
 
-    def test_buffer_create_string(self):
-        with self.assertRaisesRegex(moderngl.Error, 'buffer interface'):
-            self.ctx.buffer('Hello World!')
-
     def test_buffer_reserve(self):
         self.ctx.buffer(reserve=1024)
 

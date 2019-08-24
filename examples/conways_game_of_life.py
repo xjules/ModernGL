@@ -1,16 +1,18 @@
-import moderngl
 import numpy as np
 
-from example_window import Example, run_example
+import moderngl
+from ported._example import Example
 
 
 class Conway(Example):
-    WINDOW_SIZE = (640, 640)
+    title = "Conway's Game of Life"
+    window_size = (640, 640)
+    aspect_ratio = 1.0
 
-    def __init__(self):
-        self.ctx = moderngl.create_context()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
-        width, height = self.wnd.size
+        width, height = self.window_size
         canvas = np.array([0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]).astype('f4')
         pixels = np.round(np.random.rand(width, height)).astype('f4')
         grid = np.dstack(np.mgrid[0:height, 0:width][::-1]).astype('i4')
@@ -97,8 +99,7 @@ class Conway(Example):
         self.tao = self.ctx.simple_vertex_array(self.transform, self.text, 'in_text')
         self.pbo = self.ctx.buffer(reserve=pixels.nbytes)
 
-    def render(self):
-        self.ctx.viewport = self.wnd.viewport
+    def render(self, time, frame_time):
         self.ctx.clear(1.0, 1.0, 1.0)
 
         self.tao.transform(self.pbo)
@@ -107,4 +108,5 @@ class Conway(Example):
         self.vao.render(moderngl.TRIANGLE_STRIP)
 
 
-run_example(Conway)
+if __name__ == '__main__':
+    Conway.run()

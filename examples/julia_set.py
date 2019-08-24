@@ -1,19 +1,15 @@
-import os
+import numpy as np
 
 import moderngl
-import numpy as np
-from PIL import Image
-
-from example_window import Example, run_example
-
-
-def local(*path):
-    return os.path.join(os.path.dirname(__file__), *path)
+from ported._example import Example
 
 
 class Fractal(Example):
-    def __init__(self):
-        self.ctx = moderngl.create_context()
+    title = "Julia Set"
+    gl_version = (3, 3)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.prog = self.ctx.program(
             vertex_shader='''
@@ -63,23 +59,22 @@ class Fractal(Example):
         self.seed = self.prog['Seed']
         self.iter = self.prog['Iter']
 
-        img = Image.open(local('data', 'pal.png')).convert('RGB')
-        self.texture = self.ctx.texture(img.size, 3, img.tobytes())
-        self.texture.use()
+        self.texture = self.load_texture_2d('pal.png')
 
         vertices = np.array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0])
 
         self.vbo = self.ctx.buffer(vertices.astype('f4').tobytes())
         self.vao = self.ctx.simple_vertex_array(self.prog, self.vbo, 'in_vert')
 
-    def render(self):
-        self.ctx.viewport = self.wnd.viewport
+    def render(self, time, frame_time):
         self.ctx.clear(1.0, 1.0, 1.0)
 
         self.seed.value = (-0.8, 0.156)
         self.iter.value = 100
 
+        self.texture.use()
         self.vao.render(moderngl.TRIANGLE_STRIP)
 
 
-run_example(Fractal)
+if __name__ == '__main__':
+    Fractal.run()

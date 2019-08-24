@@ -1,22 +1,17 @@
-import os
-import struct
-
-import moderngl
 import numpy as np
 import pymunk
-from PIL import Image
 from pymunk import Vec2d
 
-from example_window import Example, run_example
-
-
-def local(*path):
-    return os.path.join(os.path.dirname(__file__), *path)
+import moderngl
+from ported._example import Example
 
 
 class PymunkExample(Example):
-    def __init__(self):
-        self.ctx = moderngl.create_context()
+    title = "Using PyMunk"
+    gl_version = (3, 3)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.prog = self.ctx.program(
             vertex_shader='''
@@ -67,12 +62,10 @@ class PymunkExample(Example):
             ''',
         )
 
-        img = Image.open(local('data', 'crate.png')).convert('RGBA')
-        self.tex1 = self.ctx.texture(img.size, 4, img.tobytes())
+        self.tex1 = self.load_texture_2d('crate.png')
         self.tex1.use(0)
 
-        img = Image.open(local('data', 'ball.png')).convert('RGBA')
-        self.tex2 = self.ctx.texture(img.size, 4, img.tobytes())
+        self.tex2 = self.load_texture_2d('ball.png')
         self.tex2.use(1)
 
         vertices = np.array([
@@ -128,14 +121,18 @@ class PymunkExample(Example):
         body.apply_impulse_at_local_point((f, 0), (0, 0))
         self.balls.append(body)
 
-    def render(self):
+    def mouse_press_event(self, x: int, y: int, button: int):
+        self.shoot()
+
+    def key_event(self, key, action, modifiers):
+        if action == self.wnd.keys.ACTION_PRESS:
+            self.shoot()
+
+    def render(self, time, frame_time):
         width, height = self.wnd.size
-        self.ctx.viewport = self.wnd.viewport
+
         self.ctx.clear(1.0, 1.0, 1.0)
         self.ctx.enable(moderngl.BLEND)
-
-        if self.wnd.key_pressed(32):
-            self.shoot()
 
         for i in range(10):
             self.space.step(1 / 60 / 10)
@@ -155,4 +152,5 @@ class PymunkExample(Example):
         self.vao.render(moderngl.TRIANGLE_STRIP, instances=len(self.balls))
 
 
-run_example(PymunkExample)
+if __name__ == '__main__':
+    PymunkExample.run()

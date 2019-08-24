@@ -24,7 +24,7 @@ libraries = {
 
 sources = [
     'gltraces.cpp',
-    '../../moderngl/experimental/mgl/internal/opengl/gl_methods.cpp',
+    '../../moderngl/mgl/internal/opengl/gl_methods.cpp',
 ]
 
 gltraces = Extension(
@@ -36,5 +36,6 @@ gltraces = Extension(
 
 setup(
     name='gltraces',
+    version='6.0.0',
     ext_modules=[gltraces],
 )

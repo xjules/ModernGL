@@ -1,28 +1,7 @@
-notifications:
-  email: false
-
-matrix:
-  include:
-    - language: python
-      python: 3.6
-      install:
-        - export TRAVIS=True
-        - export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start
-        - python -m pip install pip wheel setuptools numpy -U
-        - python extras/gltraces/setup.py develop
-        - python setup.py develop
-        - python tests/experimental/print_info.py
-      script:
-        - python -m pytest tests/experimental
-
-    - sudo: required
-      services:
-        - docker
-      script:
-        - docker run --rm -v `pwd`:/io quay.io/pypa/manylinux1_i686 linux32 sh /io/extras/build-travis/build.sh
-
-    - sudo: required
-      services:
-        - docker
-      script:
-        - docker run --rm -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 sh /io/extras/build-travis/build.sh
+language: python
+python: 3.6
+services:
+  - docker
+script:
+  - python3 setup.py sdist -d extras/docker-build
+  - cd extras/docker-build && docker build .

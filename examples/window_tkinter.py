@@ -4,7 +4,7 @@ import moderngl
 import numpy as np
 
 from tkinter_framebuffer import FramebufferImage
-from hello_world import HelloWorld2D, PanTool
+from renderer_example import HelloWorld2D, PanTool
 
 ctx = moderngl.create_standalone_context()
 

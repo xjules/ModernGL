@@ -3,19 +3,22 @@
 /dist
 /venv
 /.venv
+/env
 /.tox
 /.cache
 /.pytest_cache
 /.idea
 /.eggs
 
+/docs/next/_build
+
 /.vscode/*
-!/.vscode/extensions.json
-!/.vscode/snippets
+!/.vscode/tasks.json
 
 __pycache__
 
 temp_*
+examples/output
 
 *.egg-info
 *.log
@@ -23,3 +26,6 @@ temp_*
 *.pyc
 *.whl
 *.so
+*.a
+*.dll
+*.tar.gz

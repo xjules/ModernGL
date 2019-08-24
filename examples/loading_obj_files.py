@@ -1,19 +1,18 @@
-import os
-
-import moderngl
-from objloader import Obj
-from PIL import Image
 from pyrr import Matrix44
 
-from example_window import Example, run_example
+import moderngl
+from ported._example import Example
 
 
 class LoadingOBJ(Example):
-    def __init__(self):
-        self.ctx = moderngl.create_context()
+    title = "Loading OBJ"
+    gl_version = (3, 3)
 
-        self.obj = Obj.open(os.path.join(os.path.dirname(__file__), 'data', 'sitting_dummy.obj'))
-        self.wood = Image.open(os.path.join(os.path.dirname(__file__), 'data', 'wood.jpg'))
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.obj = self.load_scene('sitting_dummy.obj')
+        self.texture = self.load_texture_2d('wood.jpg')
 
         self.prog = self.ctx.program(
             vertex_shader='''
@@ -21,19 +20,19 @@ class LoadingOBJ(Example):
 
                 uniform mat4 Mvp;
 
-                in vec3 in_vert;
-                in vec3 in_norm;
-                in vec2 in_text;
+                in vec3 in_position;
+                in vec3 in_normal;
+                in vec2 in_texcoord_0;
 
                 out vec3 v_vert;
                 out vec3 v_norm;
                 out vec2 v_text;
 
                 void main() {
-                    v_vert = in_vert;
-                    v_norm = in_norm;
-                    v_text = in_text;
-                    gl_Position = Mvp * vec4(v_vert, 1.0);
+                    v_vert = in_position;
+                    v_norm = in_normal;
+                    v_text = in_texcoord_0;
+                    gl_Position = Mvp * vec4(in_position, 1.0);
                 }
             ''',
             fragment_shader='''
@@ -69,19 +68,14 @@ class LoadingOBJ(Example):
         self.color = self.prog['Color']
         self.mvp = self.prog['Mvp']
 
-        self.texture = self.ctx.texture(self.wood.size, 3, self.wood.tobytes())
-        self.texture.build_mipmaps()
+        # Create a vao from the first root node (attribs are auto mapped)
+        self.vao = self.obj.root_nodes[0].mesh.vao.instance(self.prog)
 
-        self.vbo = self.ctx.buffer(self.obj.pack('vx vy vz nx ny nz tx ty'))
-        self.vao = self.ctx.simple_vertex_array(self.prog, self.vbo, 'in_vert', 'in_norm', 'in_text')
-
-    def render(self):
-        width, height = self.wnd.size
-        self.ctx.viewport = self.wnd.viewport
+    def render(self, time, frame_time):
         self.ctx.clear(1.0, 1.0, 1.0)
         self.ctx.enable(moderngl.DEPTH_TEST)
 
-        proj = Matrix44.perspective_projection(45.0, width / height, 0.1, 1000.0)
+        proj = Matrix44.perspective_projection(45.0, self.aspect_ratio, 0.1, 1000.0)
         lookat = Matrix44.look_at(
             (-85, -180, 140),
             (0.0, 0.0, 65.0),
@@ -96,4 +90,5 @@ class LoadingOBJ(Example):
         self.vao.render()
 
 
-run_example(LoadingOBJ)
+if __name__ == '__main__':
+    LoadingOBJ.run()

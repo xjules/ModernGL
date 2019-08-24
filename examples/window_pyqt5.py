@@ -1,4 +1,3 @@
-import moderngl
 import numpy as np
 
 from qtmoderngl import QModernGLWidget
@@ -6,7 +5,7 @@ import sys
 
 from PyQt5 import QtWidgets
 
-from hello_world import HelloWorld2D, PanTool
+from renderer_example import HelloWorld2D, PanTool
 
 
 def vertices():

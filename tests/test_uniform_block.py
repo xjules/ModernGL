@@ -77,7 +77,7 @@ class TestCase(unittest.TestCase):
         self.assertAlmostEqual(b, 3004.0)
 
     def test_2(self):
-        min_offset: int = self.ctx.info['GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT']
+        min_offset = self.ctx.info['GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT']
         u3_len = (min_offset // 4) + 1
         u3_data = list(range(u3_len))
 

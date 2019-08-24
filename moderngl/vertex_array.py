@@ -33,7 +33,7 @@ class VertexArray:
         to create one.
     '''
 
-    __slots__ = ['mglo', '_program', '_index_buffer', '_index_element_size', '_glo', 'ctx', 'extra']
+    __slots__ = ['mglo', '_program', '_index_buffer', '_index_element_size', '_glo', 'ctx', 'extra', 'scope']
 
     def __init__(self):
         self.mglo = None
@@ -43,6 +43,7 @@ class VertexArray:
         self._glo = None
         self.ctx = None
         self.extra = None  #: Any - Attribute for storing user defined objects
+        self.scope = None
         raise TypeError()
 
     def __repr__(self):
@@ -86,6 +87,18 @@ class VertexArray:
 
         return self.mglo.vertices
 
+    @vertices.setter
+    def vertices(self, value):
+        self.mglo.vertices = int(value)
+
+    @property
+    def instances(self) -> int:
+        return self.mglo.instances
+
+    @instances.setter
+    def instances(self, value):
+        self.mglo.instances = int(value)
+
     @property
     def subroutines(self) -> Tuple[int, ...]:
         '''
@@ -108,7 +121,7 @@ class VertexArray:
 
         return self._glo
 
-    def render(self, mode=None, vertices=-1, *, first=0, instances=1) -> None:
+    def render(self, mode=None, vertices=-1, *, first=0, instances=-1) -> None:
         '''
             The render primitive (mode) must be the same as
             the input primitive of the GeometryShader.
@@ -125,7 +138,11 @@ class VertexArray:
         if mode is None:
             mode = TRIANGLES
 
-        self.mglo.render(mode, vertices, first, instances)
+        if self.scope:
+            with self.scope:
+                self.mglo.render(mode, vertices, first, instances)
+        else:
+            self.mglo.render(mode, vertices, first, instances)
 
     def render_indirect(self, buffer, mode=None, count=-1, *, first=0) -> None:
         '''
@@ -146,9 +163,13 @@ class VertexArray:
         if mode is None:
             mode = TRIANGLES
 
-        self.mglo.render_indirect(buffer.mglo, mode, count, first)
+        if self.scope:
+            with self.scope:
+                self.mglo.render_indirect(buffer.mglo, mode, count, first)
+        else:
+            self.mglo.render_indirect(buffer.mglo, mode, count, first)
 
-    def transform(self, buffer, mode=None, vertices=-1, *, first=0, instances=1) -> None:
+    def transform(self, buffer, mode=None, vertices=-1, *, first=0, instances=-1) -> None:
         '''
             Transform vertices.
             Stores the output in a single buffer.
@@ -168,7 +189,11 @@ class VertexArray:
         if mode is None:
             mode = POINTS
 
-        self.mglo.transform(buffer.mglo, mode, vertices, first, instances)
+        if self.scope:
+            with self.scope:
+                self.mglo.transform(buffer.mglo, mode, vertices, first, instances)
+        else:
+            self.mglo.transform(buffer.mglo, mode, vertices, first, instances)
 
     def bind(self, attribute, cls, buffer, fmt, *, offset=0, stride=0, divisor=0, normalize=False) -> None:
         '''

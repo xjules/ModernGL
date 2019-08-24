@@ -1,7 +1,7 @@
-import moderngl
 import numpy as np
 
-from example_window import Example, run_example
+import moderngl
+from ported._example import Example
 
 
 def particle():
@@ -11,8 +11,11 @@ def particle():
 
 
 class Particles(Example):
-    def __init__(self):
-        self.ctx = moderngl.create_context()
+    title = "Particle System"
+    gl_version = (3, 3)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.prog = self.ctx.program(
             vertex_shader='''
@@ -70,8 +73,7 @@ class Particles(Example):
 
         self.idx = 0
 
-    def render(self):
-        self.ctx.viewport = self.wnd.viewport
+    def render(self, time, frame_time):
         self.ctx.clear(1.0, 1.0, 1.0)
         self.ctx.point_size = 2.0
 
@@ -84,4 +86,5 @@ class Particles(Example):
         self.ctx.copy_buffer(self.vbo1, self.vbo2)
 
 
-run_example(Particles)
+if __name__ == '__main__':
+    Particles.run()

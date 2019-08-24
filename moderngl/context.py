@@ -2,7 +2,6 @@ import os
 import warnings
 from typing import Dict, Tuple
 
-from . import mgl
 from .buffer import Buffer
 from .compute_shader import ComputeShader
 from .conditional_render import ConditionalRender
@@ -20,15 +19,17 @@ from .texture_cube import TextureCube
 from .vertex_array import VertexArray
 from .sampler import Sampler
 
+try:
+    import moderngl.mgl as mgl
+except ImportError:
+    pass
+
 __all__ = ['Context', 'create_context', 'create_standalone_context',
            'NOTHING', 'BLEND', 'DEPTH_TEST', 'CULL_FACE', 'RASTERIZER_DISCARD',
            'ZERO', 'ONE', 'SRC_COLOR', 'ONE_MINUS_SRC_COLOR', 'SRC_ALPHA', 'ONE_MINUS_SRC_ALPHA', 'DST_ALPHA',
            'ONE_MINUS_DST_ALPHA', 'DST_COLOR', 'ONE_MINUS_DST_COLOR',
-           'DEFAULT_BLENDING', 'PREMULTIPLIED_ALPHA',
-           'Error']
-
-
-Error = mgl.Error
+           'DEFAULT_BLENDING', 'PREMULTIPLIED_ALPHA', 'FIRST_VERTEX_CONVENTION', 'LAST_VERTEX_CONVENTION'
+]
 
 
 NOTHING = 0
@@ -49,6 +50,8 @@ ONE_MINUS_DST_ALPHA = 0x0305
 DST_COLOR = 0x0306
 ONE_MINUS_DST_COLOR = 0x0307
 
+FIRST_VERTEX_CONVENTION = 0x8E4D
+LAST_VERTEX_CONVENTION = 0x8E4E
 
 DEFAULT_BLENDING = (SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
 PREMULTIPLIED_ALPHA = (SRC_ALPHA, ONE)
@@ -59,6 +62,25 @@ class Context:
         Class exposing OpenGL features.
         ModernGL objects can be created from this class.
     '''
+
+    BLEND = 1
+    DEPTH_TEST = 2
+    CULL_FACE = 4
+
+    ZERO = 0x0000
+    ONE = 0x0001
+
+    SRC_COLOR = 0x0300
+    ONE_MINUS_SRC_COLOR = 0x0301
+    SRC_ALPHA = 0x0302
+    ONE_MINUS_SRC_ALPHA = 0x0303
+    DST_ALPHA = 0x0304
+    ONE_MINUS_DST_ALPHA = 0x0305
+    DST_COLOR = 0x0306
+    ONE_MINUS_DST_COLOR = 0x0307
+
+    FIRST_VERTEX_CONVENTION = 0x8E4D
+    LAST_VERTEX_CONVENTION = 0x8E4E
 
     __slots__ = ['mglo', '_screen', '_info', 'version_code', 'fbo', 'extra']
 
@@ -100,6 +122,10 @@ class Context:
     @point_size.setter
     def point_size(self, value):
         self.mglo.point_size = value
+
+    @property
+    def provoking_vertex(self):
+        self.mglo.provoking_vertex()
 
     @property
     def depth_func(self) -> str:
@@ -161,6 +187,22 @@ class Context:
     @multisample.setter
     def multisample(self, value):
         self.mglo.multisample = value
+
+    @property
+    def provoking_vertex(self):
+        '''
+            This property is write only
+
+            Example::
+                
+                ctx.provoking_vertex = moderngl.FIRST_VERTEX_CONVENTION
+        '''
+        raise NotImplementedError()
+
+
+    @provoking_vertex.setter
+    def provoking_vertex(self, value):
+        self.mglo.provoking_vertex = value
 
     @property
     def viewport(self) -> Tuple[int, int, int, int]:
@@ -385,7 +427,7 @@ class Context:
 
         return self._info
 
-    def clear(self, red=0.0, green=0.0, blue=0.0, alpha=0.0, depth=1.0, *, viewport=None) -> None:
+    def clear(self, red=0.0, green=0.0, blue=0.0, alpha=0.0, depth=1.0, *, viewport=None, color=None) -> None:
         '''
             Clear the bound framebuffer. By default clears the :py:data:`screen`.
 
@@ -407,6 +449,9 @@ class Context:
             Keyword Args:
                 viewport (tuple): The viewport.
         '''
+
+        if color is not None:
+            red, green, blue, alpha, *_ = tuple(color) + (0.0, 0.0, 0.0, 0.0)
 
         self.mglo.fbo.clear(red, green, blue, alpha, depth, viewport)
 
@@ -693,14 +738,19 @@ class Context:
         res.extra = None
         return res
 
-    def vertex_array(self, program, content,
+    def vertex_array(self, *args, **kwargs) -> 'VertexArray':
+        if len(args) > 2 and type(args[1]) is Buffer:
+            return self.simple_vertex_array(*args, **kwargs)
+        return self._vertex_array(*args, **kwargs)
+
+    def _vertex_array(self, program, content,
                      index_buffer=None, index_element_size=4, *, skip_errors=False) -> 'VertexArray':
         '''
             Create a :py:class:`VertexArray` object.
 
             Args:
                 program (Program): The program used when rendering.
-                content (list): A list of (buffer, format, attributes).
+                content (list): A list of (buffer, format, attributes). See :ref:`buffer-format-label`.
                 index_buffer (Buffer): An index buffer.
 
             Keyword Args:
@@ -710,6 +760,7 @@ class Context:
             Returns:
                 :py:class:`VertexArray` object
         '''
+
         members = program._members
         index_buffer_mglo = None if index_buffer is None else index_buffer.mglo
         content = tuple((a.mglo, b) + tuple(getattr(members.get(x), 'mglo', None) for x in c) for a, b, *c in content)
@@ -722,6 +773,7 @@ class Context:
         res._index_element_size = index_element_size
         res.ctx = self
         res.extra = None
+        res.scope = None
         return res
 
     def simple_vertex_array(self, program, buffer, *attributes,
@@ -832,7 +884,7 @@ class Context:
         res.extra = None
         return res
 
-    def scope(self, framebuffer, enable_only=None, *, textures=(), uniform_buffers=(), storage_buffers=()) -> 'Scope':
+    def scope(self, framebuffer=None, enable_only=None, *, textures=(), uniform_buffers=(), storage_buffers=(), samplers=(), enable=None) -> 'Scope':
         '''
             Create a :py:class:`Scope` object.
 
@@ -846,12 +898,18 @@ class Context:
                 storage_buffers (list): List of (buffer, binding) tuples.
         '''
 
+        if enable is not None:
+            enable_only = enable
+
+        if framebuffer is None:
+            framebuffer = self.screen
+
         textures = tuple((tex.mglo, idx) for tex, idx in textures)
         uniform_buffers = tuple((buf.mglo, idx) for buf, idx in uniform_buffers)
         storage_buffers = tuple((buf.mglo, idx) for buf, idx in storage_buffers)
 
         res = Scope.__new__(Scope)
-        res.mglo = self.mglo.scope(framebuffer.mglo, enable_only, textures, uniform_buffers, storage_buffers)
+        res.mglo = self.mglo.scope(framebuffer.mglo, enable_only, textures, uniform_buffers, storage_buffers, samplers)
         res.ctx = self
         res.extra = None
         return res
@@ -992,7 +1050,7 @@ class Context:
         return res
 
     def sampler(self, repeat_x=True, repeat_y=True, repeat_z=True, filter=None, anisotropy=1.0,
-                compare_func='?', border_color=None, min_lod=-1000.0, max_lod=1000.0) -> Sampler:
+                compare_func='?', border_color=None, min_lod=-1000.0, max_lod=1000.0, texture=None) -> Sampler:
         '''
             Create a :py:class:`Sampler` object.
 
@@ -1026,6 +1084,7 @@ class Context:
         res.min_lod = min_lod
         res.max_lod = max_lod
         res.extra = None
+        res.texture = texture
         return res
 
     def clear_samplers(self, start=0, end=-1):
@@ -1077,7 +1136,7 @@ class Context:
         self.mglo.release()
 
 
-def create_context(require=None) -> Context:
+def create_context(require=None, standalone=False, **settings) -> Context:
     '''
         Create a ModernGL context by loading OpenGL functions from an existing OpenGL context.
         An OpenGL context must exists. If rendering is done without a window please use the
@@ -1098,17 +1157,23 @@ def create_context(require=None) -> Context:
             :py:class:`Context` object
     '''
 
+    if standalone:
+        return create_standalone_context(require=require, **settings)
+
+    import moderngl.mgl as mgl
+
     ctx = Context.__new__(Context)
     ctx.mglo, ctx.version_code = mgl.create_context()
-    ctx._screen = ctx.detect_framebuffer(0)
-    ctx.fbo = ctx.detect_framebuffer()
-    ctx.mglo.fbo = ctx.fbo.mglo
     ctx._info = None
     ctx.extra = None
 
     if require is not None and ctx.version_code < require:
         raise ValueError('Requested OpenGL version {}, got version {}'.format(
             require, ctx.version_code))
+
+    ctx._screen = ctx.detect_framebuffer(0)
+    ctx.fbo = ctx.detect_framebuffer()
+    ctx.mglo.fbo = ctx.fbo.mglo
 
     return ctx
 

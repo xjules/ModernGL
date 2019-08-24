@@ -32,6 +32,18 @@ class UniformBlock:
         self.mglo.binding = binding
 
     @property
+    def value(self) -> int:
+        '''
+            int: The value of the uniform block.
+        '''
+
+        return self.mglo.value
+
+    @value.setter
+    def value(self, value):
+        self.mglo.binding = value
+
+    @property
     def name(self) -> str:
         '''
             str: The name of the uniform block.

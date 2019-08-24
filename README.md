@@ -7,13 +7,15 @@
 # ModernGL
 
 ```sh
-pip install ModernGL
+pip install moderngl
 ```
 
 - [Documentation](https://moderngl.readthedocs.io/)
-- [Examples](https://github.com/cprogrammer1994/ModernGL/tree/master/examples/#readme)
-- [ModernGL on Github](https://github.com/cprogrammer1994/ModernGL/)
+- [Examples](https://github.com/moderngl/moderngl/tree/master/examples/#readme)
+- [ModernGL on Github](https://github.com/moderngl/moderngl/)
 - [ModernGL on PyPI](https://pypi.org/project/ModernGL/)
+- [ModernGL Discord Server](https://discord.gg/UEMtW8D)
+- [moderngl_window] (Window creation, resource loading, ..)
 
 ## Features
 
@@ -73,7 +75,7 @@ vbo2 = ctx.buffer(reserve=1024, dynamic=True)
 
 ## Build
 
-[![build](https://img.shields.io/travis/cprogrammer1994/ModernGL/master.svg?label=build)](https://travis-ci.org/cprogrammer1994/ModernGL)
+[![build](https://img.shields.io/travis/moderngl/moderngl/master.svg?label=build)](https://travis-ci.org/moderngl/moderngl)
 [![build](https://img.shields.io/appveyor/ci/cprogrammer1994/ModernGL/master.svg?label=build)](https://ci.appveyor.com/project/cprogrammer1994/ModernGL)
 
 ```sh
@@ -102,12 +104,8 @@ OpenGL 3.3 came out in February 2010. With **up to date drivers** you will be ab
 
 ### Can ModernGL create a Window?
 
-**NO**, Window creation is up to you. You can choose from a large variety of modules that can create a window: [PyQt5], [pyglet], [pygame], [GLUT] and many others.
-
-[PyQt5]: https://pypi.org/project/PyQt5/
-[pyglet]: https://bitbucket.org/pyglet/pyglet/wiki/Home
-[pygame]: https://www.pygame.org/news
-[GLUT]: https://wiki.python.org/moin/PyOpenGL
+**NO**, but we provide a utility library [moderngl_window] making window creation and
+resource loading very simple.
 
 ### Limitations using ModernGL over PyOpenGL?
 
@@ -138,7 +136,8 @@ python setup.py build_sphinx
 ### Running tests
 
 ```sh
-pytest
+pip install -r tests/requirements.txt
+pytest tests
 ```
 
 > Some of the tests may be skipped when the supported OpenGL version is below the requirements of the given test.
@@ -159,6 +158,7 @@ Code is tested with [pep8], [flake8], [prospector] and [pylint]
 [flake8]: http://flake8.pycqa.org/en/latest/
 [prospector]: https://prospector.landscape.io/en/master/
 [pylint]: https://www.pylint.org/
+[moderngl_window]: https://github.com/moderngl/moderngl_window
 
 ## Community
 
@@ -175,6 +175,7 @@ Code is tested with [pep8], [flake8], [prospector] and [pylint]
 - [Tomi Aarnio](https://github.com/toaarnio)
 - [Joshua Reibert](https://github.com/joshua-r)
 - [Einar Forselv](https://github.com/einarf)
+- [Jonathan Hartley](https://github.com/tartley)
 
 and [many others](https://github.com/cprogrammer1994/ModernGL/graphs/contributors)
 

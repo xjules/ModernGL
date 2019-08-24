@@ -1,5 +1,5 @@
 ## Requirements
 
 ```
-pip install ModernGL Pillow Pyrr numpy
+pip install moderngl Pillow Pyrr numpy
 ```

@@ -5,7 +5,7 @@ Install ModernGL with :command:`pip`:
 
 .. code-block:: sh
 
-    $ pip install ModernGL
+    $ pip install moderngl
 
 Version check:
 
