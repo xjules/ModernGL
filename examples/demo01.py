@@ -188,8 +188,8 @@ class PerspectiveProjection(Example):
                 out vec4 rfrc_view_pos;
 
                 vec3 sample_normal(vec2 view_pos) {
-                    vec2 t0 = vec2(time * 0.01);
-                    vec2 t1 = vec2(time * 0.01, 0.0);
+                    vec2 t0 = vec2(time * 0.1);
+                    vec2 t1 = vec2(time * 0.1, 0.0);
                     vec2 uv0 = fract((view_pos + 15.0) / 60.0 + t0);
                     vec2 uv1 = fract((view_pos + 15.0) / 60.0 + t1);
                     vec3 nm0 = texture(normal_map, uv0).xyz;
